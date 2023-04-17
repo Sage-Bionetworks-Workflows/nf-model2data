@@ -6,7 +6,7 @@ nextflow.enable.dsl = 2
 params.view_id = "syn51356905"
 params.input_dir = "${projectDir}/input"
 params.cpus = "4"
-params.memory = "16"
+params.memory = "16.GB"
 
 process GET_SUBMISSIONS {
     secret "SYNAPSE_AUTH_TOKEN"
@@ -44,7 +44,7 @@ process RUN_DOCKER {
     script:
     """
     echo \$SYNAPSE_AUTH_TOKEN | docker login docker.synapse.org --username foo --password-stdin
-    docker run --entrypoint "" -v $input:/input:ro -v  \$PWD:/output:rw $container ls /input
+    docker run --entrypoint "" -v /input:/input:ro -v  \$PWD:/output:rw $container ls /input
     """
 }
 

@@ -39,12 +39,12 @@ process RUN_DOCKER {
     val memory
 
     output:
-    path 'predictions.csv'
+    // path 'predictions.csv'
 
     script:
     """
     echo \$SYNAPSE_AUTH_TOKEN | docker login docker.synapse.org --username foo --password-stdin
-    docker run -v $input:/input:ro -v  \$PWD:/output:rw $container
+    docker run --entrypoint "" -v $input:/input:ro -v  \$PWD:/output:rw $container ls /input
     """
 }
 

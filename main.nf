@@ -34,8 +34,8 @@ process RUN_DOCKER {
     
 
     input:
+    val container
     val input
-    tuple val(container)
     val cpus
     val memory
 
@@ -59,5 +59,6 @@ workflow {
     GET_SUBMISSIONS(params.view)
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
-    RUN_DOCKER(params.input_dir, image_ch, params.cpus, params.memory)
+        .map { it.dockerimage }
+    RUN_DOCKER(image_ch, params.input_dir, params.cpus, params.memory)
 }

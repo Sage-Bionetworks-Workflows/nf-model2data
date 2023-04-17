@@ -3,13 +3,12 @@
 // The tower space is PHI safe
 nextflow.enable.dsl = 2
 
-params.view = "syn51356905"
+params.view_id = "syn51356905"
 params.input_dir = "${projectDir}/input"
 params.cpus = "4"
 params.memory = "16"
 
 process GET_SUBMISSIONS {
-    debug true
     secret "SYNAPSE_AUTH_TOKEN"
     container "sagebionetworks/synapsepythonclient:v2.7.0"
 
@@ -56,7 +55,7 @@ workflow {
     // input_files = Channel.fromPath("$params.input", type: 'dir')
     // input_files = params.input
     // docker_images = Channel.fromList(input_docker_list)
-    GET_SUBMISSIONS(params.view)
+    GET_SUBMISSIONS(params.view_id)
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
         .map { it.dockerimage }

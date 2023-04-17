@@ -3,14 +3,31 @@
 // The tower space is PHI safe
 nextflow.enable.dsl = 2
 
+params.view = "syn51356905"
 params.input_dir = "${projectDir}/input"
-params.container = "docker.synapse.org/syn51317219/example_model:v1"
 params.cpus = "4"
 params.memory = "16"
 
-process run_docker {
+process GET_SUBMISSIONS {
     debug true
-    secret 'SYNAPSE_AUTH_TOKEN'
+    secret "SYNAPSE_AUTH_TOKEN"
+    container "sagebionetworks/synapsepythonclient:v2.7.0"
+
+    input:
+    val view
+
+    output:
+    path "images.csv"
+
+    script:
+    """
+    pull_submissions.py '${view}'
+    """
+}
+
+process RUN_DOCKER {
+    debug true
+    secret "SYNAPSE_AUTH_TOKEN"
     cpus "${cpus}"
     memory "${memory}"
     container "ghcr.io/sage-bionetworks-workflows/nf-model2data/dind_image:1.0"
@@ -18,7 +35,7 @@ process run_docker {
 
     input:
     val input
-    val container
+    tuple val(container)
     val cpus
     val memory
 
@@ -39,5 +56,8 @@ workflow {
     // input_files = Channel.fromPath("$params.input", type: 'dir')
     // input_files = params.input
     // docker_images = Channel.fromList(input_docker_list)
-    run_docker(params.input_dir, params.container, params.cpus, params.memory)
+    GET_SUBMISSIONS(params.view)
+    image_ch = GET_SUBMISSIONS.output 
+        .splitCsv(header:true) 
+    RUN_DOCKER(params.input_dir, image_ch, params.cpus, params.memory)
 }

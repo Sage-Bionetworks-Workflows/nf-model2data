@@ -21,7 +21,7 @@ process GET_SUBMISSIONS {
 
     script:
     """
-    pull_submissions.py '${view}'
+    get_submissions.py '${view}'
     """
 }
 

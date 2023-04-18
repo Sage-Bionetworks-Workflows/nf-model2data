@@ -9,7 +9,6 @@ params.cpus = "4"
 params.memory = "16.GB"
 
 process GET_SUBMISSIONS {
-    debug true
     secret "SYNAPSE_AUTH_TOKEN"
     container "sagebionetworks/synapsepythonclient:v2.7.0"
 
@@ -26,7 +25,6 @@ process GET_SUBMISSIONS {
 }
 
 process RUN_DOCKER {
-    debug true
     secret "SYNAPSE_AUTH_TOKEN"
     cpus "${cpus}"
     memory "${memory}"
@@ -51,12 +49,6 @@ process RUN_DOCKER {
 }
 
 workflow {
-    // "s3://genie-bpc-project-tower-bucket/**"
-    // How to log into private docker registry on nextflow tower
-    // Need to figure out how to add this as a channel
-    // input_files = Channel.fromPath("$params.input", type: 'dir')
-    // input_files = params.input
-    // docker_images = Channel.fromList(input_docker_list)
     GET_SUBMISSIONS(params.view_id)
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 

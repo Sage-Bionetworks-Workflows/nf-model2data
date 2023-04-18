@@ -8,7 +8,7 @@ In order to use this workflow, you must already have completed the following ste
 1. Created a Synapse project shared with challenge participants.
 2. Created an evaluation queue within the Synapse project.
 3. One or more Docker containers must have already been submitted to your evaluation queue.
-4. Created a submission view that includes the `status`, `dockerrepositoryname`, and `dockerdigest` columns.
+4. Created a submission view that at least includes the `id`, `status`, `dockerrepositoryname`, and `dockerdigest` columns.
 
 ## Running the workflow
 

@@ -9,6 +9,7 @@ params.cpus = "4"
 params.memory = "16.GB"
 
 process GET_SUBMISSIONS {
+    debug true
     secret "SYNAPSE_AUTH_TOKEN"
     container "sagebionetworks/synapsepythonclient:v2.7.0"
 
@@ -33,18 +34,19 @@ process RUN_DOCKER {
     
 
     input:
-    val container
+    tuple val(submission_id), val(container)
     val input
     val cpus
     val memory
 
     output:
-    // path 'predictions.csv'
+    val submission_id
+    path 'predictions.csv'
 
     script:
     """
     echo \$SYNAPSE_AUTH_TOKEN | docker login docker.synapse.org --username foo --password-stdin
-    docker run --entrypoint "" -v /input:/input:ro -v  \$PWD:/output:rw $container ls /input
+    docker run -v $input:/input:ro -v  \$PWD:/output:rw $container
     """
 }
 
@@ -58,6 +60,6 @@ workflow {
     GET_SUBMISSIONS(params.view_id)
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
-        .map { it.dockerimage }
+        .map { row -> tuple(row.submission_id, row.image_id) }
     RUN_DOCKER(image_ch, params.input_dir, params.cpus, params.memory)
 }

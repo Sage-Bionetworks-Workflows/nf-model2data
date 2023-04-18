@@ -15,17 +15,12 @@ def get_submission_view(view: str) -> pd.DataFrame:
         images_df (pd.DataFrame): one column dataframe with submission docker images
     """
     syn = synapseclient.login()
-
     submission_view = syn.tableQuery(f"select * from {view} where status = 'RECEIVED'")
     submission_df = submission_view.asDataFrame()
-    images_df = pd.DataFrame(
-        {
-            "dockerimage": submission_df.apply(
-                lambda row: f"{row['dockerrepositoryname']}@{row['dockerdigest']}",
-                axis=1,
-            )
-        }
-    )
+    images_df = submission_df.reset_index()[["id", "dockerrepositoryname", "dockerdigest"]]
+    images_df["image_id"] = images_df["dockerrepositoryname"] + "@" + images_df["dockerdigest"]
+    images_df = images_df.drop(columns=['dockerrepositoryname', 'dockerdigest'])
+    images_df = images_df.rename(columns={"id": "submission_id"})
     return images_df
 
 

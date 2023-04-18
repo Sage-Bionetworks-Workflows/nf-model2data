@@ -40,8 +40,8 @@ process RUN_DOCKER {
     val memory
 
     output:
-    // val submission_id
-    // path 'predictions.csv'
+    val submission_id
+    path 'predictions.csv'
 
     script:
     """

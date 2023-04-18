@@ -3,34 +3,55 @@
 // The tower space is PHI safe
 nextflow.enable.dsl = 2
 
-params.input_dir = "./"
-params.input_docker = "docker.synapse.org/syn4990358/challengeworkflowexample:valid,docker.synapse.org/syn4990358/challengeworkflowexample:invalid"
-input_docker_list = params.input_docker?.split(',') as List
+params.view_id = "syn51356905"
+params.input_dir = "${projectDir}/input"
+params.cpus = "4"
+params.memory = "16.GB"
 
-process run_docker {
-    debug true
-    secret 'SYNAPSE_AUTH_TOKEN'
-    
+process GET_SUBMISSIONS {
+    secret "SYNAPSE_AUTH_TOKEN"
+    container "sagebionetworks/synapsepythonclient:v2.7.0"
+
     input:
-    path files
-    val docker_image
+    val view
 
     output:
+    path "images.csv"
+
+    script:
+    """
+    get_submissions.py '${view}'
+    """
+}
+
+process RUN_DOCKER {
+    secret "SYNAPSE_AUTH_TOKEN"
+    cpus "${cpus}"
+    memory "${memory}"
+    container "ghcr.io/sage-bionetworks-workflows/nf-model2data/dind_image:1.0"
+    
+
+    input:
+    tuple val(submission_id), val(container)
+    path input
+    val cpus
+    val memory
+
+    output:
+    val submission_id
     path 'predictions.csv'
 
     script:
     """
     echo \$SYNAPSE_AUTH_TOKEN | docker login docker.synapse.org --username foo --password-stdin
-    docker run -v $files:/input:ro -v \$PWD:/output:rw $docker_image
+    docker run -v \$PWD/$input:/input:ro -v  \$PWD:/output:rw $container
     """
 }
 
 workflow {
-    // "s3://genie-bpc-project-tower-bucket/**"
-    // How to log into private docker registry on nextflow tower
-    // Need to figure out how to add this as a channel
-    // input_files = Channel.fromPath("$params.input", type: 'dir')
-    input_files = params.input
-    docker_images = Channel.fromList(input_docker_list)
-    run_docker(input_files, docker_images)
+    GET_SUBMISSIONS(params.view_id)
+    image_ch = GET_SUBMISSIONS.output 
+        .splitCsv(header:true) 
+        .map { row -> tuple(row.submission_id, row.image_id) }
+    RUN_DOCKER(image_ch, params.input_dir, params.cpus, params.memory)
 }

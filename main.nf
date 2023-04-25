@@ -5,7 +5,7 @@ nextflow.enable.dsl = 2
 // Synapse ID for Submission View
 params.view_id = "syn51356905"
 // Synapse ID for Input Data folder
-params.input_folder = "syn51390589"
+params.input_id = "syn51390589"
 // CPUs to dedicate to RUN_DOCKER
 params.cpus = "4"
 // Memory to dedicate to RUN_DOCKER
@@ -20,14 +20,14 @@ process SYNAPSE_STAGE {
     secret 'SYNAPSE_AUTH_TOKEN'
 
     input:
-    val input_folder
+    val input_id
 
     output:
     path "**"
 
     script:
     """    
-    synapse get -r --downloadLocation ./input ${input_folder}
+    synapse get -r --downloadLocation ./input ${input_id}
     """
 }
 
@@ -74,7 +74,7 @@ process RUN_DOCKER {
 }
 
 workflow {
-    SYNAPSE_STAGE(params.input_folder)
+    SYNAPSE_STAGE(params.input_id)
     GET_SUBMISSIONS(params.view_id)
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 

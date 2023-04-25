@@ -1,16 +1,18 @@
-
 // Find your tower s3 bucket and upload your input files into it
 // The tower space is PHI safe
 nextflow.enable.dsl = 2
 
+// Synapse ID for Submission View
 params.view_id = "syn51356905"
-// params.input_dir = "${projectDir}/input"
+// Synapse ID for Input Data folder
+params.input_folder = "syn51390589"
+// CPUs to dedicate to RUN_DOCKER
 params.cpus = "4"
+// Memory to dedicate to RUN_DOCKER
 params.memory = "16.GB"
 
-params.input_folder = "syn51390589"
 
-//downloads synapse folder given Synapse ID
+// downloads synapse folder given Synapse ID and stages to /input
 process SYNAPSE_STAGE {
 
     container "sagebionetworks/synapsepythonclient:v2.7.0"
@@ -29,6 +31,7 @@ process SYNAPSE_STAGE {
     """
 }
 
+// Gets submissions from view
 process GET_SUBMISSIONS {
     secret "SYNAPSE_AUTH_TOKEN"
     container "sagebionetworks/synapsepythonclient:v2.7.0"
@@ -45,6 +48,7 @@ process GET_SUBMISSIONS {
     """
 }
 
+// runs docker containers
 process RUN_DOCKER {
     secret "SYNAPSE_AUTH_TOKEN"
     cpus "${cpus}"

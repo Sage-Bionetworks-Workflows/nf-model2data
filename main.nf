@@ -4,9 +4,30 @@
 nextflow.enable.dsl = 2
 
 params.view_id = "syn51356905"
-params.input_dir = "${projectDir}/input"
+// params.input_dir = "${projectDir}/input"
 params.cpus = "4"
 params.memory = "16.GB"
+
+params.input_folder = "syn51390589"
+
+//downloads synapse folder given Synapse ID
+process SYNAPSE_STAGE {
+
+    container "sagebionetworks/synapsepythonclient:v2.7.0"
+    
+    secret 'SYNAPSE_AUTH_TOKEN'
+
+    input:
+    val input_folder
+
+    output:
+    path "**"
+
+    script:
+    """    
+    synapse get -r --downloadLocation ./input ${input_folder}
+    """
+}
 
 process GET_SUBMISSIONS {
     secret "SYNAPSE_AUTH_TOKEN"
@@ -33,7 +54,7 @@ process RUN_DOCKER {
 
     input:
     tuple val(submission_id), val(container)
-    path input
+    path "/input/*"
     val cpus
     val memory
 
@@ -44,14 +65,15 @@ process RUN_DOCKER {
     script:
     """
     echo \$SYNAPSE_AUTH_TOKEN | docker login docker.synapse.org --username foo --password-stdin
-    docker run -v \$PWD/$input:/input:ro -v  \$PWD:/output:rw $container
+    docker run --entrypoint "" -d -v \$PWD/input:/input:ro -v \$PWD:/output:rw $container tail -f /dev/null
     """
 }
 
 workflow {
+    SYNAPSE_STAGE(params.input_folder)
     GET_SUBMISSIONS(params.view_id)
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
         .map { row -> tuple(row.submission_id, row.image_id) }
-    RUN_DOCKER(image_ch, params.input_dir, params.cpus, params.memory)
+    RUN_DOCKER(image_ch, SYNAPSE_GET.output, params.cpus, params.memory)
 }

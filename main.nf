@@ -50,6 +50,7 @@ process GET_SUBMISSIONS {
 
 // runs docker containers
 process RUN_DOCKER {
+    debug true
     secret "SYNAPSE_AUTH_TOKEN"
     cpus "${cpus}"
     memory "${memory}"
@@ -58,26 +59,27 @@ process RUN_DOCKER {
 
     input:
     tuple val(submission_id), val(container)
-    path "/input/*"
+    path staged_list
     val cpus
     val memory
 
     output:
-    val submission_id
-    path 'predictions.csv'
+    // val submission_id
+    // path 'predictions.csv'
 
     script:
     """
     echo \$SYNAPSE_AUTH_TOKEN | docker login docker.synapse.org --username foo --password-stdin
-    docker run -v \$PWD/input:/input:ro -v \$PWD:/output:rw $container
+    docker run --entrypoint "" -d -v \$PWD:/input:ro -v output:/output:rw $container tail -f /dev/null
     """
 }
 
 workflow {
     SYNAPSE_STAGE(params.input_id)
+    staged_list = SYNAPSE_STAGE.output
     GET_SUBMISSIONS(params.view_id)
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
         .map { row -> tuple(row.submission_id, row.image_id) }
-    RUN_DOCKER(image_ch, SYNAPSE_STAGE.output, params.cpus, params.memory)
+    RUN_DOCKER(image_ch, staged_list, params.cpus, params.memory)
 }

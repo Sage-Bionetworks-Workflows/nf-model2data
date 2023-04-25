@@ -9,13 +9,14 @@ In order to use this workflow, you must already have completed the following ste
 2. Created an evaluation queue within the Synapse project.
 3. One or more Docker containers must have already been submitted to your evaluation queue.
 4. Created a submission view that at least includes the `id`, `status`, `dockerrepositoryname`, and `dockerdigest` columns.
+5. Added the input data for evaluating submissions to a folder within your Synapse project.
 
 ## Running the workflow
 
 The workflow takes several inputs. They are:
 
 1. `view_id` (required): The Synapse ID for your submission view.
-2. `input_dir` (required): The directory holding the testing data for submissions. Defaults to `${projectDir}/input`
+2. `input_id` (required): The directory holding the testing data for submissions. Defaults to `${projectDir}/input`
 3. `cpus` (optional): Number of CPUs to dedicate to the `RUN_DOCKER` process i.e. the challenge executions. Defaults to `4`
 4. `memory` (optional): Amount of memory to dedicate to the `RUN_DOCKER` process i.e. the challenge executions. Defaults to `16.GB`
 

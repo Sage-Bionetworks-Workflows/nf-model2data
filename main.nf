@@ -75,5 +75,5 @@ workflow {
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
         .map { row -> tuple(row.submission_id, row.image_id) }
-    RUN_DOCKER(image_ch, SYNAPSE_GET.output, params.cpus, params.memory)
+    RUN_DOCKER(image_ch, SYNAPSE_STAGE.output, params.cpus, params.memory)
 }

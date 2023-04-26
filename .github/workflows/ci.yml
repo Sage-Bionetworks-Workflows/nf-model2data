@@ -19,6 +19,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
+        platforms: linux/amd64,linux/arm64
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository | tolower }}/my-image:ci_test
+        tags: ghcr.io/${{ github.repository.toLowerCase() }}/my-image:ci_test

@@ -22,9 +22,12 @@ process SYNAPSE_STAGE {
     input:
     val input_id
 
+    output:
+    path "input/"
+
     script:
     """    
-    synapse get -r --downloadLocation ${workDir}/input ${input_id}
+    synapse get -r --downloadLocation \$PWD/input ${input_id}
     """
 }
 
@@ -56,6 +59,7 @@ process RUN_DOCKER {
 
     input:
     tuple val(submission_id), val(container)
+    path staged_path
     val cpus
     val memory
 
@@ -66,15 +70,16 @@ process RUN_DOCKER {
     script:
     """
     echo \$SYNAPSE_AUTH_TOKEN | docker login docker.synapse.org --username foo --password-stdin
-    docker run -v ${workDir}/input:/input:ro -v \$PWD:/output:rw $container
+    docker run -v \$PWD/input:/input:ro -v \$PWD:/output:rw $container
     """
 }
 
 workflow {
     SYNAPSE_STAGE(params.input_id)
+    staged_path = SYNAPSE_STAGE.output
     GET_SUBMISSIONS(params.view_id)
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
         .map { row -> tuple(row.submission_id, row.image_id) }
-    RUN_DOCKER(image_ch, params.cpus, params.memory)
+    RUN_DOCKER(image_ch, staged_path, params.cpus, params.memory)
 }

@@ -21,4 +21,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository }}/my-image:ci_test
+        tags: ghcr.io/${{ github.repository | tolower }}/my-image:ci_test

@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Login to GitHub Container Registry
-      uses: docker/login-action@v1
+      uses: docker/login-action@v2
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -20,7 +20,7 @@ jobs:
       uses: docker/metadata-action@v4
       with:
         images: |
-          ghcr.io/${{ github.repository }}
+          ghcr.io/${{ github.repository }}/dind_image
         tags: |
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}

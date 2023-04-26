@@ -6,7 +6,7 @@ on:
       - bwmac/orca-202/ghcr_cicd
 
 jobs:
-  build-and-push:
+  docker-publish:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -16,10 +16,24 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build and push Docker image
+    - id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=ref,event=branch
+            type=sha
+    - name: Publish Docker Image
       uses: docker/build-push-action@v2
       with:
         platforms: linux/amd64,linux/arm64
         context: .
+        build-args: |
+          TARBALL_PATH=${{ needs.prepare.outputs.tarball-path }}
         push: true
-        tags: ghcr.io/${{ github.repository.toLowerCase() }}/my-image:ci_test
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}

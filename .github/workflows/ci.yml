@@ -27,6 +27,7 @@ jobs:
           type=semver,pattern={{major}}
           type=ref,event=branch
           type=sha
+          latest
     - name: Publish Docker Image
       uses: docker/build-push-action@v3
       with:

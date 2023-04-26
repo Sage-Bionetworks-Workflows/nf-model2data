@@ -1,9 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - bwmac/orca-202/ghcr_cicd
+  release:
+    types: [created]
 
 jobs:
   docker-publish:

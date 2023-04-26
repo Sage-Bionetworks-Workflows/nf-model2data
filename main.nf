@@ -48,6 +48,7 @@ process GET_SUBMISSIONS {
     """
 }
 
+// change submission status to EVALUATION_IN_PROGRESS
 process UPDATE_SUBMISSION_BEFORE_RUN {
     secret "SYNAPSE_AUTH_TOKEN"
     container "sagebionetworks/challengeutils:v4.2.0"
@@ -88,6 +89,8 @@ process RUN_DOCKER {
     docker run -v \$PWD/input:/input:ro -v \$PWD:/output:rw $container
     """
 }
+
+// change submission status to ACCEPTED
 
 process UPDATE_SUBMISSION_AFTER_RUN {
     secret "SYNAPSE_AUTH_TOKEN"

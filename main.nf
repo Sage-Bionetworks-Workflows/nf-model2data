@@ -48,23 +48,6 @@ process GET_SUBMISSIONS {
     """
 }
 
-// change submission status to EVALUATION_IN_PROGRESS
-process UPDATE_SUBMISSION_BEFORE_RUN {
-    secret "SYNAPSE_AUTH_TOKEN"
-    container "sagebionetworks/challengeutils:v4.2.0"
-
-    input:
-    tuple val(submission_id), val(container)
-
-    output:
-    tuple val(submission_id), val(container)
-
-    script:
-    """
-    challengeutils change-status ${submission_id} EVALUATION_IN_PROGRESS
-    """
-}
-
 // runs docker containers
 process RUN_DOCKER {
     debug true
@@ -90,23 +73,9 @@ process RUN_DOCKER {
     """
 }
 
-// change submission status to ACCEPTED
-
-process UPDATE_SUBMISSION_AFTER_RUN {
-    secret "SYNAPSE_AUTH_TOKEN"
-    container "sagebionetworks/challengeutils:v4.2.0"
-
-    input:
-    tuple val(submission_id), val(output_path)
-
-    output:
-    tuple val(submission_id), val(output_path)
-
-    script:
-    """
-    challengeutils change-status ${submission_id} ACCEPTED
-    """
-}
+// import modules
+include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_BEFORE_RUN } from './modules/update_submission_status.nf'
+include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_RUN } from './modules/update_submission_status.nf'
 
 workflow {
     SYNAPSE_STAGE(params.input_id)
@@ -115,7 +84,7 @@ workflow {
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
         .map { row -> tuple(row.submission_id, row.image_id) }
-    UPDATE_SUBMISSION_BEFORE_RUN(image_ch)
-    RUN_DOCKER(UPDATE_SUBMISSION_BEFORE_RUN.output, staged_path, params.cpus, params.memory)
-    UPDATE_SUBMISSION_AFTER_RUN(RUN_DOCKER.output)
+    UPDATE_SUBMISSION_STATUS_BEFORE_RUN(image_ch, "EVALUATION_IN_PROGRESS")
+    RUN_DOCKER(UPDATE_SUBMISSION_STATUS_BEFORE_RUN.output, staged_path, params.cpus, params.memory)
+    UPDATE_SUBMISSION_STATUS_AFTER_RUN(RUN_DOCKER.output, "ACCEPTED")
 }

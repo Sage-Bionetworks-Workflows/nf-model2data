@@ -64,8 +64,7 @@ process RUN_DOCKER {
     val memory
 
     output:
-    val submission_id
-    path 'predictions.csv'
+    tuple val(submission_id), path('predictions.csv')
 
     script:
     """
@@ -74,6 +73,10 @@ process RUN_DOCKER {
     """
 }
 
+// import modules
+include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_BEFORE_RUN } from './modules/update_submission_status.nf'
+include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_RUN } from './modules/update_submission_status.nf'
+
 workflow {
     SYNAPSE_STAGE(params.input_id)
     staged_path = SYNAPSE_STAGE.output
@@ -81,5 +84,7 @@ workflow {
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
         .map { row -> tuple(row.submission_id, row.image_id) }
-    RUN_DOCKER(image_ch, staged_path, params.cpus, params.memory)
+    UPDATE_SUBMISSION_STATUS_BEFORE_RUN(image_ch, "EVALUATION_IN_PROGRESS")
+    RUN_DOCKER(UPDATE_SUBMISSION_STATUS_BEFORE_RUN.output, staged_path, params.cpus, params.memory)
+    UPDATE_SUBMISSION_STATUS_AFTER_RUN(RUN_DOCKER.output, "ACCEPTED")
 }

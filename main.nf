@@ -80,6 +80,8 @@ include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_RUN } from 
 workflow {
     SYNAPSE_STAGE(params.input_id)
     staged_path = SYNAPSE_STAGE.output
+    // view staged_path channel
+    staged_path.view()
     GET_SUBMISSIONS(params.view_id)
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 

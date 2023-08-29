@@ -7,7 +7,7 @@ process VALIDATE {
     tuple val(submission_id), path(predictions)
 
     output:
-    tuple val(submission_id), path(predictions), stdout, path("*.json")
+    tuple val(submission_id), path(predictions), stdout, path("results.json")
 
     script:
     """

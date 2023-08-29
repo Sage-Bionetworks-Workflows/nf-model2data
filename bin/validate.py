@@ -8,7 +8,7 @@ if __name__ == "__main__":
     invalid_reasons = []
     if predictions_path is None:
         prediction_status = "INVALID"
-        invalid_reasons.append("Predicitons file not found")
+        invalid_reasons.append("Predictions file not found")
     else:
         with open(predictions_path, "r") as sub_file:
             message = sub_file.read()

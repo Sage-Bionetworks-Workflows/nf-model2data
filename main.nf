@@ -11,70 +11,11 @@ params.cpus = "4"
 // Memory to dedicate to RUN_DOCKER
 params.memory = "16.GB"
 
-
-// downloads synapse folder given Synapse ID and stages to /input
-process SYNAPSE_STAGE {
-
-    container "sagebionetworks/synapsepythonclient:v2.7.0"
-    
-    secret 'SYNAPSE_AUTH_TOKEN'
-
-    input:
-    val input_id
-
-    output:
-    path "input/"
-
-    script:
-    """    
-    synapse get -r --downloadLocation \$PWD/input ${input_id}
-    """
-}
-
-// Gets submissions from view
-process GET_SUBMISSIONS {
-    secret "SYNAPSE_AUTH_TOKEN"
-    container "sagebionetworks/synapsepythonclient:v2.7.0"
-
-    input:
-    val view
-
-    output:
-    path "images.csv"
-
-    script:
-    """
-    get_submissions.py '${view}'
-    """
-}
-
-// runs docker containers
-process RUN_DOCKER {
-    secret "SYNAPSE_AUTH_TOKEN"
-    cpus "${cpus}"
-    memory "${memory}"
-    container "ghcr.io/sage-bionetworks-workflows/nf-model2data:latest"
-    
-
-    input:
-    tuple val(submission_id), val(container)
-    path staged_path
-    val cpus
-    val memory
-    val ready
-
-    output:
-    tuple val(submission_id), path('predictions.csv')
-
-    script:
-    """
-    echo \$SYNAPSE_AUTH_TOKEN | docker login docker.synapse.org --username foo --password-stdin
-    docker run -v \$PWD/input:/input:ro -v \$PWD:/output:rw $container
-    """
-}
-
 // import modules
+include { SYNAPSE_STAGE } from './modules/synapse_stage.nf'
+include { GET_SUBMISSIONS } from './modules/get_submissions.nf'
 include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_BEFORE_RUN } from './modules/update_submission_status.nf'
+include { RUN_DOCKER } from './modules/run_docker.nf'
 include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_RUN } from './modules/update_submission_status.nf'
 include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_VALIDATE } from './modules/update_submission_status.nf'
 include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_SCORE } from './modules/update_submission_status.nf'

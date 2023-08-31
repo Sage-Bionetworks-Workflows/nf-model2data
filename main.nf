@@ -21,7 +21,8 @@ include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_VALIDATE } 
 include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_SCORE } from './modules/update_submission_status.nf'
 include { VALIDATE } from './modules/validate.nf'
 include { SCORE } from './modules/score.nf'
-include { ANNOTATE_SUBMISSION } from './modules/annotate_submission.nf'
+include { ANNOTATE_SUBMISSION as ANNOTATE_SUBMISSION_AFTER_VALIDATE } from './modules/annotate_submission.nf'
+include { ANNOTATE_SUBMISSION as ANNOTATE_SUBMISSION_AFTER_SCORE } from './modules/annotate_submission.nf'
 
 workflow {
     SYNAPSE_STAGE(params.input_id)
@@ -35,7 +36,8 @@ workflow {
     UPDATE_SUBMISSION_STATUS_AFTER_RUN(RUN_DOCKER.output.map { tuple(it[0], "ACCEPTED") }, UPDATE_SUBMISSION_STATUS_BEFORE_RUN.output)
     VALIDATE(RUN_DOCKER.output)
     UPDATE_SUBMISSION_STATUS_AFTER_VALIDATE(VALIDATE.output.map { tuple(it[0], it[2]) }, UPDATE_SUBMISSION_STATUS_AFTER_RUN.output)
+    ANNOTATE_SUBMISSION_AFTER_VALIDATE(VALIDATE.output)
     SCORE(VALIDATE.output)
     UPDATE_SUBMISSION_STATUS_AFTER_SCORE(SCORE.output.map { tuple(it[0], it[2]) }, UPDATE_SUBMISSION_STATUS_AFTER_VALIDATE.output)
-    ANNOTATE_SUBMISSION(SCORE.output)
+    ANNOTATE_SUBMISSION_AFTER_SCORE(SCORE.output)
 }

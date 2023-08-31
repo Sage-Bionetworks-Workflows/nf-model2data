@@ -50,7 +50,6 @@ process GET_SUBMISSIONS {
 
 // runs docker containers
 process RUN_DOCKER {
-    debug true
     secret "SYNAPSE_AUTH_TOKEN"
     cpus "${cpus}"
     memory "${memory}"
@@ -62,6 +61,7 @@ process RUN_DOCKER {
     path staged_path
     val cpus
     val memory
+    val ready
 
     output:
     tuple val(submission_id), path('predictions.csv')
@@ -77,7 +77,9 @@ process RUN_DOCKER {
 include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_BEFORE_RUN } from './modules/update_submission_status.nf'
 include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_RUN } from './modules/update_submission_status.nf'
 include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_VALIDATE } from './modules/update_submission_status.nf'
+include { UPDATE_SUBMISSION_STATUS as UPDATE_SUBMISSION_STATUS_AFTER_SCORE } from './modules/update_submission_status.nf'
 include { VALIDATE } from './modules/validate.nf'
+include { SCORE } from './modules/score.nf'
 
 workflow {
     SYNAPSE_STAGE(params.input_id)
@@ -86,9 +88,11 @@ workflow {
     image_ch = GET_SUBMISSIONS.output 
         .splitCsv(header:true) 
         .map { row -> tuple(row.submission_id, row.image_id) }
-    UPDATE_SUBMISSION_STATUS_BEFORE_RUN(image_ch.map { tuple(it[0], "EVALUATION_IN_PROGRESS") })
-    RUN_DOCKER(image_ch, staged_path, params.cpus, params.memory)
-    UPDATE_SUBMISSION_STATUS_AFTER_RUN(RUN_DOCKER.output.map { tuple(it[0], "ACCEPTED") })
+    UPDATE_SUBMISSION_STATUS_BEFORE_RUN(image_ch.map { tuple(it[0], "EVALUATION_IN_PROGRESS") }, "ready")
+    RUN_DOCKER(image_ch, staged_path, params.cpus, params.memory, UPDATE_SUBMISSION_STATUS_BEFORE_RUN.output)
+    UPDATE_SUBMISSION_STATUS_AFTER_RUN(RUN_DOCKER.output.map { tuple(it[0], "ACCEPTED") }, UPDATE_SUBMISSION_STATUS_BEFORE_RUN.output)
     VALIDATE(RUN_DOCKER.output)
-    UPDATE_SUBMISSION_STATUS_AFTER_VALIDATE(VALIDATE.output.map { tuple(it[0], it[2]) })
+    UPDATE_SUBMISSION_STATUS_AFTER_VALIDATE(VALIDATE.output.map { tuple(it[0], it[2]) }, UPDATE_SUBMISSION_STATUS_AFTER_RUN.output)
+    SCORE(VALIDATE.output)
+    UPDATE_SUBMISSION_STATUS_AFTER_SCORE(SCORE.output.map { tuple(it[0], it[2]) }, UPDATE_SUBMISSION_STATUS_AFTER_VALIDATE.output)
 }

@@ -17,8 +17,7 @@ if __name__ == "__main__":
             prediction_status = "INVALID"
             invalid_reasons.append("Predicitons file is empty")
     result = {
-        "submission_errors": ";".join(invalid_reasons),
-        "submission_status": prediction_status,
+        "validation": {"errors": ";".join(invalid_reasons), "status": prediction_status}
     }
     with open("results.json", "w") as o:
         o.write(json.dumps(result))

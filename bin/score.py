@@ -30,7 +30,14 @@ def score_submission(predictions_path: str, status: str) -> dict:
             message = f"Error {e} occurred while scoring"
             score = None
             score_status = "INVALID"
-    result = {"score": {"auc": score, "status": score_status, "errors": message}}
+    result = {
+        "score": {
+            "score_category": "auc",
+            "score": score,
+            "status": score_status,
+            "errors": message,
+        }
+    }
     return score_status, result
 
 

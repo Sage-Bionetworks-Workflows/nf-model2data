@@ -61,6 +61,7 @@ process RUN_DOCKER {
     path staged_path
     val cpus
     val memory
+    val ready
 
     output:
     tuple val(submission_id), path('predictions.csv')
@@ -88,7 +89,7 @@ workflow {
         .splitCsv(header:true) 
         .map { row -> tuple(row.submission_id, row.image_id) }
     UPDATE_SUBMISSION_STATUS_BEFORE_RUN(image_ch.map { tuple(it[0], "EVALUATION_IN_PROGRESS") }, "ready")
-    RUN_DOCKER(image_ch, staged_path, params.cpus, params.memory)
+    RUN_DOCKER(image_ch, staged_path, params.cpus, params.memory, UPDATE_SUBMISSION_STATUS_BEFORE_RUN.output)
     UPDATE_SUBMISSION_STATUS_AFTER_RUN(RUN_DOCKER.output.map { tuple(it[0], "ACCEPTED") }, UPDATE_SUBMISSION_STATUS_BEFORE_RUN.output)
     VALIDATE(RUN_DOCKER.output)
     UPDATE_SUBMISSION_STATUS_AFTER_VALIDATE(VALIDATE.output.map { tuple(it[0], it[2]) }, UPDATE_SUBMISSION_STATUS_AFTER_RUN.output)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import os
 import sys
 
 
@@ -48,8 +49,9 @@ def update_json(results_path: str, result: dict) -> None:
         results_path (str): path to the results.json file
         result (dict): dictionary containing score, status and errors
     """
+    file_size = os.path.getsize(results_path)
     with open(results_path, "r") as o:
-        data = json.load(o)
+        data = json.load(o) if file_size else {}
     data.update(result)
     with open(results_path, "w") as o:
         o.write(json.dumps(data))

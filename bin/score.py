@@ -32,12 +32,9 @@ def score_submission(predictions_path: str, status: str) -> dict:
             score = None
             score_status = "INVALID"
     result = {
-        "score": {
-            "score_category": "auc",
-            "score": score,
-            "status": score_status,
-            "errors": message,
-        }
+        "auc": score,
+        "score_status": score_status,
+        "score_errors": message,
     }
     return score_status, result
 

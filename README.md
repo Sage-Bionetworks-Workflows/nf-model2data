@@ -31,3 +31,7 @@ nextflow run main.nf --view_id "<your_view_id>" --input_id "<your_input_id>"
 ### Profiles
 
 The workflow comes with two preconfigured `profiles` for memory and CPU allocation. The `local` profile is equivilent to the default (`cpus` = `4`; `memory` = `16.GB`) this is intended to be used for runs on local machines with the adequate resources. The `tower` profile dedicates double the resources (`cpus` = `8`; `memory` = `32.GB`) and can be used when running the workflow on Nextflow Tower for improved performance. 
+
+## Workflow DAG
+
+![Alt text](img/nf-model2data_dag.png)

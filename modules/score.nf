@@ -5,6 +5,8 @@ process SCORE {
 
     input:
     tuple val(submission_id), path(predictions), val(status), path(results)
+    val status_ready
+    val annotate_ready
 
     output:
     tuple val(submission_id), path(predictions), stdout, path("results.json")

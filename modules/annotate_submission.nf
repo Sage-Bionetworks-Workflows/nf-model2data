@@ -6,6 +6,9 @@ process ANNOTATE_SUBMISSION {
     input:
     tuple val(submission_id), path(predictions), val(status), path(results)
 
+    output:
+    val "ready"
+
     script:
     """
     challengeutils annotate-submission ${submission_id} ${results}

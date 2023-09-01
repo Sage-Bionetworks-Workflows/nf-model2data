@@ -5,10 +5,9 @@ process UPDATE_SUBMISSION_STATUS {
 
     input:
     tuple val(submission_id), val(new_status)
-    val ready
 
     output:
-    val ready
+    val "ready"
 
     script:
     """

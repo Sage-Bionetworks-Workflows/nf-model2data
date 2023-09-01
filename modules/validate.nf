@@ -5,6 +5,7 @@ process VALIDATE {
 
     input:
     tuple val(submission_id), path(predictions)
+    val ready
 
     output:
     tuple val(submission_id), path(predictions), stdout, path("results.json")
